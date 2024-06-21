@@ -1,0 +1,209 @@
+Task 1: To-Do List Application
+Overview
+The To-Do List application helps users manage and organize their tasks efficiently. Users can add, update, mark as complete, delete tasks, and save/load tasks from a file.
+
+Features
+Add Task: Add a new task to the list.
+View Tasks: View all tasks with their completion status.
+Mark Task as Completed: Mark a specific task as completed.
+Update Task: Update the description of a task.
+Delete Task: Delete a specific task.
+Save Tasks: Save the current tasks to a file.
+Load Tasks: Load tasks from a file.
+
+-------------------------------------------------------------------------------------------------------
+
+Code Implementation
+Command-Line Version
+
+import json
+
+class TodoList:
+    def __init__(self):
+        self.tasks = []
+
+    def add_task(self, task):
+        self.tasks.append({"task": task, "completed": False})
+        print(f"Added task: {task}")
+
+    def view_tasks(self):
+        if not self.tasks:
+            print("No tasks in the list.")
+            return
+        for i, task in enumerate(self.tasks, 1):
+            status = "Completed" if task["completed"] else "Not Completed"
+            print(f"{i}. {task['task']} - {status}")
+
+    def mark_task_completed(self, task_number):
+        if 0 < task_number <= len(self.tasks):
+            self.tasks[task_number - 1]["completed"] = True
+            print(f"Marked task {task_number} as completed.")
+        else:
+            print("Invalid task number.")
+
+    def update_task(self, task_number, new_task):
+        if 0 < task_number <= len(self.tasks):
+            old_task = self.tasks[task_number - 1]["task"]
+            self.tasks[task_number - 1]["task"] = new_task
+            print(f"Updated task {task_number} from '{old_task}' to '{new_task}'.")
+        else:
+            print("Invalid task number.")
+
+    def delete_task(self, task_number):
+        if 0 < task_number <= len(self.tasks):
+            task = self.tasks.pop(task_number - 1)
+            print(f"Deleted task: {task['task']}")
+        else:
+            print("Invalid task number.")
+
+    def save_tasks(self, filename="tasks.json"):
+        with open(filename, "w") as file:
+            json.dump(self.tasks, file, indent=4)
+        print(f"Tasks saved to {filename}")
+
+    def load_tasks(self, filename="tasks.json"):
+        try:
+            with open(filename, "r") as file:
+                self.tasks = json.load(file)
+            print(f"Tasks loaded from {filename}")
+        except FileNotFoundError:
+            print(f"{filename} not found. Starting with an empty list.")
+
+def main():
+    todo_list = TodoList()
+    todo_list.load_tasks()
+    
+    while True:
+        print("\nTo-Do List Menu:")
+        print("1. Add Task")
+        print("2. View Tasks")
+        print("3. Mark Task as Completed")
+        print("4. Update Task")
+        print("5. Delete Task")
+        print("6. Save Tasks")
+        print("7. Load Tasks")
+        print("8. Exit")
+
+        choice = input("Choose an option: ")
+        
+        if choice == "1":
+            task = input("Enter a new task: ")
+            todo_list.add_task(task)
+        elif choice == "2":
+            todo_list.view_tasks()
+        elif choice == "3":
+            task_number = int(input("Enter the task number to mark as completed: "))
+            todo_list.mark_task_completed(task_number)
+        elif choice == "4":
+            task_number = int(input("Enter the task number to update: "))
+            new_task = input("Enter the new task: ")
+            todo_list.update_task(task_number, new_task)
+        elif choice == "5":
+            task_number = int(input("Enter the task number to delete: "))
+            todo_list.delete_task(task_number)
+        elif choice == "6":
+            todo_list.save_tasks()
+        elif choice == "7":
+            todo_list.load_tasks()
+        elif choice == "8":
+            print("Exiting To-Do List application.")
+            break
+        else:
+            print("Invalid choice. Please choose a valid option.")
+
+if __name__ == "__main__":
+    main()
+
+--------------------------------------------------------------------------------------------
+
+GUI Version
+
+import tkinter as tk
+from tkinter import messagebox
+import json
+
+class TodoApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("To-Do List")
+        self.tasks = []
+        self.load_tasks()
+
+        self.frame = tk.Frame(self.root)
+        self.frame.pack()
+
+        self.task_listbox = tk.Listbox(self.frame, width=50, height=10)
+        self.task_listbox.pack(side=tk.LEFT)
+        
+        self.scrollbar = tk.Scrollbar(self.frame, orient=tk.VERTICAL)
+        self.scrollbar.config(command=self.task_listbox.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        self.task_listbox.config(yscrollcommand=self.scrollbar.set)
+
+        self.entry = tk.Entry(self.root, width=50)
+        self.entry.pack()
+
+        self.add_button = tk.Button(self.root, text="Add Task", command=self.add_task)
+        self.add_button.pack()
+
+        self.complete_button = tk.Button(self.root, text="Complete Task", command=self.complete_task)
+        self.complete_button.pack()
+
+        self.delete_button = tk.Button(self.root, text="Delete Task", command=self.delete_task)
+        self.delete_button.pack()
+
+        self.save_button = tk.Button(self.root, text="Save Tasks", command=self.save_tasks)
+        self.save_button.pack()
+
+        self.load_tasks_to_listbox()
+
+    def add_task(self):
+        task = self.entry.get()
+        if task:
+            self.tasks.append({"task": task, "completed": False})
+            self.entry.delete(0, tk.END)
+            self.load_tasks_to_listbox()
+        else:
+            messagebox.showwarning("Warning", "You must enter a task.")
+
+    def complete_task(self):
+        selected_task_index = self.task_listbox.curselection()
+        if selected_task_index:
+            index = selected_task_index[0]
+            self.tasks[index]["completed"] = True
+            self.load_tasks_to_listbox()
+        else:
+            messagebox.showwarning("Warning", "You must select a task to complete.")
+
+    def delete_task(self):
+        selected_task_index = self.task_listbox.curselection()
+        if selected_task_index:
+            index = selected_task_index[0]
+            self.tasks.pop(index)
+            self.load_tasks_to_listbox()
+        else:
+            messagebox.showwarning("Warning", "You must select a task to delete.")
+
+    def load_tasks_to_listbox(self):
+        self.task_listbox.delete(0, tk.END)
+        for task in self.tasks:
+            status = "✓" if task["completed"] else "✗"
+            self.task_listbox.insert(tk.END, f"{task['task']} [{status}]")
+
+    def save_tasks(self):
+        with open("tasks.json", "w") as file:
+            json.dump(self.tasks, file, indent=4)
+        messagebox.showinfo("Info", "Tasks saved successfully.")
+
+    def load_tasks(self):
+        try:
+            with open("tasks.json", "r") as file:
+                self.tasks = json.load(file)
+        except FileNotFoundError:
+            self.tasks = []
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = TodoApp(root)
+    root.mainloop()
